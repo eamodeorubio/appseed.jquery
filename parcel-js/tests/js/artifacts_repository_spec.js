@@ -208,6 +208,14 @@ describe("appseed.ArtifactRepository", function() {
 				expect(typeof(loader.description.error)).toEqual('function');
 			});
 		}
+		
+		it("given the artifact is a "+artifactType+", id() will return its identifier", function() {
+			var artifact=artifactWithIdAndDefinedType();
+			
+			expect(artifact.id()).toEqual(artifactId);
+			expect(artifact.load().id()).toEqual(artifactId);
+		});
+		
 		it("given the artifact is a "+artifactType+", loadingProgress calls dependenciesManager.loadingProgress(artifactId)", function() {
 			dependenciesManager.loadingProgress.andReturn(1);
 			

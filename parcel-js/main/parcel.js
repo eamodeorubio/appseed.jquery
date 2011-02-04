@@ -556,18 +556,20 @@ appseed.ArtifactsRespository = function(optConfig){
 	
 	var dependeciesManager = optConfig && typeof(optConfig.newDependenciesManager) == 'function' ? optConfig.newDependenciesManager(repository) : new appseed.DependenciesManager(repository);
 	
-	var newArtifact = function(id){
+	var newArtifact = function(identifier){
 		// Common to all artifacts
+		var id=function(){ return identifier; };
+		
 		var loadImportedArtifacts = function(){
-			dependeciesManager.loadImportedArtifactsBy(id);
+			dependeciesManager.loadImportedArtifactsBy(identifier);
 		};
 		
 		var allImportedArtifactsAreReady = function(){
-			return dependeciesManager.allImportedArtifactsAreReady(id);
+			return dependeciesManager.allImportedArtifactsAreReady(identifier);
 		};
 		
 		var anyImportedArtifactHasErrors = function(){
-			return dependeciesManager.anyImportedArtifactHasErrors(id);
+			return dependeciesManager.anyImportedArtifactHasErrors(identifier);
 		};
 		var notifyImportChanged = function(){
 		};
@@ -576,7 +578,7 @@ appseed.ArtifactsRespository = function(optConfig){
 			var argCount = arguments.length;
 			if (argCount > 0) {
 				dependencyListener = {
-					'id': id,
+					'id': identifier,
 					'importedArtifactStatusChanged': function(){
 						notifyImportChanged();
 					}
@@ -591,12 +593,13 @@ appseed.ArtifactsRespository = function(optConfig){
 		};
 		
 		var loadingProgress=function() {
-			return dependeciesManager.loadingProgress(id);
+			return dependeciesManager.loadingProgress(identifier);
 		};
 		
 		return new function(){
 			this.requires = requires;
 			this.loadingProgress=loadingProgress;
+			this.id=id;
 			
 			this.isReady = function(){
 				return false;
@@ -607,8 +610,9 @@ appseed.ArtifactsRespository = function(optConfig){
 			};
 			
 			var ArtifactOfTypeMixin=function(artifactType, loaderConfig) {
-				var lifecycleManager = newLifecycleManager(id);
+				var lifecycleManager = newLifecycleManager(identifier);
 				this.requires = requires;
+				this.id = id;
 				this.loadingProgress=loadingProgress;
 				
 				this.isReady = function(){
@@ -639,7 +643,7 @@ appseed.ArtifactsRespository = function(optConfig){
 					return this;
 				};
 				loaderConfig.error= function(optErrorDetail){
-					var self = repository.artifact(id);
+					var self = repository.artifact(identifier);
 					self.isReady = function(){
 						return false;
 					};
@@ -650,10 +654,10 @@ appseed.ArtifactsRespository = function(optConfig){
 						self.load();
 					};
 					lifecycleManager.errorLoading(optErrorDetail);
-					dependeciesManager.notifyArtifactStatusChanged(id);
+					dependeciesManager.notifyArtifactStatusChanged(identifier);
 				};
 				loaderConfig.ready=function(optArtifactData){
-					var self = repository.artifact(id);
+					var self = repository.artifact(identifier);
 					self.isReady = function(){
 						return true;
 					};
@@ -664,7 +668,7 @@ appseed.ArtifactsRespository = function(optConfig){
 						return this;
 					};
 					lifecycleManager.loadSuccessful(optArtifactData);
-					dependeciesManager.notifyArtifactStatusChanged(id);
+					dependeciesManager.notifyArtifactStatusChanged(identifier);
 				};
 				
 				this.load = function(){
@@ -677,20 +681,20 @@ appseed.ArtifactsRespository = function(optConfig){
 						if (allImportedArtifactsAreReady()) 
 							configuration['new'+artifactType+'Loader'](loaderConfig).load();
 						else if (anyImportedArtifactHasErrors()) 
-							loaderConfig.error('Some imported artifact by "' + id + '" of type "'+artifactType+'" has errors');
+							loaderConfig.error('Some imported artifact by "' + identifier + '" of type "'+artifactType+'" has errors');
 					};
 					loadImportedArtifacts();
 					notifyImportChanged();
 					return this;
 				};
 				
-				artifacts[id] = this;
+				artifacts[identifier] = this;
 			};
 			
 			var ArtifactOfTypeWithUriMixin = function(artifactType, uri, loaderConfig) {
 				this['isA'+artifactType] = function(uri){
 					if (typeof(uri) != 'string') 
-						throw new Error("Only an string is allowed as an URI [artifactId='" + id + "', type='"+artifactType+"']. It was <" + uri + ">");
+						throw new Error("Only an string is allowed as an URI [artifactId='" + identifier + "', type='"+artifactType+"']. It was <" + uri + ">");
 					loaderConfig.uri = uri;
 					return this;
 				};
@@ -751,7 +755,7 @@ appseed.ArtifactsRespository = function(optConfig){
 					
 					var commonReady=loaderConfig.ready;
 					loaderConfig.ready=function(optArtifactData){
-						var self = repository.artifact(id);
+						var self = repository.artifact(identifier);
 						self.contents=function() {
 							return optArtifactData;
 						};
@@ -763,7 +767,7 @@ appseed.ArtifactsRespository = function(optConfig){
 					
 					var commonError=loaderConfig.error;
 					loaderConfig.error=function(optErrorDetail){
-						var self = repository.artifact(id);
+						var self = repository.artifact(identifier);
 						self.contents=function() {
 							return null;
 						};
@@ -775,7 +779,7 @@ appseed.ArtifactsRespository = function(optConfig){
 				};
 			};
 			
-			artifacts[id] = this;
+			artifacts[identifier] = this;
 		};
 	};
 	
