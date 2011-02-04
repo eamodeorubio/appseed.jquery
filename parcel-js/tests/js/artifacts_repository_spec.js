@@ -138,6 +138,12 @@ describe("appseed.ArtifactRepository", function() {
 		repository.artifact(3333);
 	}));
 	
+	it("id() will return the artifact identifier although its type is not defined", function() {
+		expect(repository.artifact(artifactId).id()).toEqual(artifactId);
+		expect(repository.artifact(anotherArtifactId).id()).toEqual(anotherArtifactId);
+		expect(repository.artifact(yetAnotherArtifactId).id()).toEqual(yetAnotherArtifactId);
+	});
+		
 	it("cannot load an artifact if its type has not been defined yet", function() {
 		expect(repository.artifact(artifactId).load).not.toBeDefined();
 	});
