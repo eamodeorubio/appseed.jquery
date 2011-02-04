@@ -1,0 +1,9 @@
+bin
+build
+.project
+.classpath
+.settings
+.gradle
+*Notes.txt
+*Experiment.*
+out/
