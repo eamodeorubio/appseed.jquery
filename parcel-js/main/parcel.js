@@ -293,7 +293,7 @@ appseed.AjaxLoader = function(artifactDescription, optAjaxConnectionFactory){
 };
 
 appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, LOADED){
-	return function(id, optEventManagerFactory){
+	return function(artifact, optEventManagerFactory){
 		var state = NOT_LOADED;
 		
 		var log = appseed.log;
@@ -309,36 +309,28 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 			});
 		};
 		var StateChangeEvent = function(theState, detail){
-			var status = {
-				'isLoading': function(){
-					return theState == LOADING;
-				},
-				'isError': function(){
-					return theState == ERROR;
-				},
-				'isReady': function(){
-					return theState == READY;
-				}
+			this.isLoading = function(){
+				return theState == LOADING;
+			},
+			this.isError = function(){
+				return theState == ERROR;
+			},
+			this.isReady = function(){
+				return theState == READY;
 			};
-			this.status = function(){
-				return status;
-			}
-			this.artifactId = function(){
-				return id;
-			}
-			this.artifactURI = function(){
-				return uri;
-			}
+			this.artifact = function(){
+				return artifact;
+			};
 			this.detail = function(){
 				return detail;
-			}
+			};
 		};
 		
 		var eventManagers = {};
-		eventManagers[READY] = newEventManager(READY + " '" + id + "'");
-		eventManagers[LOADING] = newEventManager(LOADING + " '" + id + "'");
-		eventManagers[LOADED] = newEventManager(LOADED + " '" + id + "'");
-		eventManagers[ERROR] = newEventManager(ERROR + " '" + id + "'");
+		eventManagers[READY] = newEventManager(READY + " '" + artifact.id() + "'");
+		eventManagers[LOADING] = newEventManager(LOADING + " '" + artifact.id()+ "'");
+		eventManagers[LOADED] = newEventManager(LOADED + " '" + artifact.id() + "'");
+		eventManagers[ERROR] = newEventManager(ERROR + " '" + artifact.id() + "'");
 		var registerCallbackFor = function(eventId, callbacks){
 			eventManagers[eventId].register.apply(eventManagers[eventId], callbacks);
 			return this;

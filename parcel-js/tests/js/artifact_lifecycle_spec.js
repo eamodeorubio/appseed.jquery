@@ -19,45 +19,49 @@ along with appseed.jquery/parcel-js. If not, see <http://www.gnu.org/licenses/>.
 beforeEach(function() {
 	// Some custom matchers for readability !
 	this.addMatchers({
-		'toHaveBeenCalledWithALoadingEvent':function(resourceId) {
+		'toHaveBeenCalledWithALoadingEvent':function(artifact) {
 			var ev=this.actual.mostRecentCall.args[0];
-			this.message=function() { return "Not a loading event for resource '"+resourceId+"'. It was <"+jasmine.pp(ev)+">"; }
-			return ev.artifactId()==resourceId
-					&&ev.status().isLoading()
-					&&!ev.status().isError()
-					&&!ev.status().isReady();
+			this.message=function() { return "Not a loading event for resource '"+artifact.id()+"'. It was <"+jasmine.pp(ev)+">"; }
+			return ev.artifact()==artifact
+					&&ev.isLoading()
+					&&!ev.isError()
+					&&!ev.isReady();
 		},
-		'toHaveBeenCalledWithAReadyEvent':function(resourceId, detail) {
+		'toHaveBeenCalledWithAReadyEvent':function(artifact, detail) {
 			var ev=this.actual.mostRecentCall.args[0];
-			this.message=function() { return "Not a ready event for resource '"+resourceId+"'. It was <"+jasmine.pp(ev)+">"; }
-			return ev.artifactId()==resourceId
-					&&!ev.status().isLoading()
-					&&!ev.status().isError()
-					&&ev.status().isReady()
+			this.message=function() { return "Not a ready event for resource '"+artifact.id()+"'. It was <"+jasmine.pp(ev)+">"; }
+			return ev.artifact()==artifact
+					&&!ev.isLoading()
+					&&!ev.isError()
+					&&ev.isReady()
 					&&ev.detail()==detail;
 		},
-		'toHaveBeenCalledWithAnErrorEvent':function(resourceId, errorDetail) {
+		'toHaveBeenCalledWithAnErrorEvent':function(artifact, errorDetail) {
 			var ev=this.actual.mostRecentCall.args[0];
-			this.message=function() { return "Not an error event for resource '"+resourceId+"'. It was <"+jasmine.pp(ev)+">"; }
-			return ev.artifactId()==resourceId
-					&&!ev.status().isLoading()
-					&&ev.status().isError()
-					&&!ev.status().isReady()
+			this.message=function() { return "Not an error event for resource '"+artifact.id()+"'. It was <"+jasmine.pp(ev)+">"; }
+			return ev.artifact()==artifact
+					&&!ev.isLoading()
+					&&ev.isError()
+					&&!ev.isReady()
 					&&ev.detail()==errorDetail;
 		}
 	});
 });
 
 describe("appseed.ArtifactLifecycleManager", function() {
-	var resourceId='a resource id';
+	var artifact = {
+		'id': function(){
+			return 'a resource id'
+		}
+	};
 	var readyDetail='ready data'
 		, errorDetail='an error detail';
 	
 	var lifecycleManager, events;
 	beforeEach(function(){
 		events={};
-		lifecycleManager=new appseed.ArtifactLifecycleManager(resourceId, function(id, log){
-			expect(id).toContain(resourceId);
+		lifecycleManager=new appseed.ArtifactLifecycleManager(artifact, function(id, log){
+			expect(id).toContain(artifact.id());
 			expect(log).toBeDefined();
 			r={
 				'id':id,
@@ -108,7 +112,7 @@ describe("appseed.ArtifactLifecycleManager", function() {
 			.startLoading();
 		
 		expect(events['Loading'].fire).toHaveBeenCalledExactly(1);
-		expect(events['Loading'].fire).toHaveBeenCalledWithALoadingEvent(resourceId);
+		expect(events['Loading'].fire).toHaveBeenCalledWithALoadingEvent(artifact);
 		
 		return lifecycleManager;
 	};
@@ -119,7 +123,7 @@ describe("appseed.ArtifactLifecycleManager", function() {
 			.startLoading();
 		
 		expect(events['Loading'].fire).toHaveBeenCalledExactly(1);
-		expect(events['Loading'].fire).toHaveBeenCalledWithALoadingEvent(resourceId);
+		expect(events['Loading'].fire).toHaveBeenCalledWithALoadingEvent(artifact);
 		expect(events['Error'].fire).not.toHaveBeenCalled();
 		expect(events['Loaded'].fire).not.toHaveBeenCalled();
 		expect(events['Ready'].fire).not.toHaveBeenCalled();
@@ -138,10 +142,10 @@ describe("appseed.ArtifactLifecycleManager", function() {
 	
 	var checkProperNotificationForReadyState=function() {
 		expect(events['Ready'].fire).toHaveBeenCalledExactly(1);
-		expect(events['Ready'].fire).toHaveBeenCalledWithAReadyEvent(resourceId, readyDetail);
+		expect(events['Ready'].fire).toHaveBeenCalledWithAReadyEvent(artifact, readyDetail);
 		
 		expect(events['Loaded'].fire).toHaveBeenCalledExactly(1);
-		expect(events['Loaded'].fire).toHaveBeenCalledWithAReadyEvent(resourceId, readyDetail);
+		expect(events['Loaded'].fire).toHaveBeenCalledWithAReadyEvent(artifact, readyDetail);
 		
 		expect(events['Error'].fire).not.toHaveBeenCalled();
 	};
@@ -164,10 +168,10 @@ describe("appseed.ArtifactLifecycleManager", function() {
 	
 	var checkProperNotificationForErrorState=function() {
 		expect(events['Error'].fire).toHaveBeenCalledExactly(1);
-		expect(events['Error'].fire).toHaveBeenCalledWithAnErrorEvent(resourceId, errorDetail);
+		expect(events['Error'].fire).toHaveBeenCalledWithAnErrorEvent(artifact, errorDetail);
 		
 		expect(events['Loaded'].fire).toHaveBeenCalledExactly(1);
-		expect(events['Loaded'].fire).toHaveBeenCalledWithAnErrorEvent(resourceId, errorDetail);
+		expect(events['Loaded'].fire).toHaveBeenCalledWithAnErrorEvent(artifact, errorDetail);
 		
 		expect(events['Ready'].fire).not.toHaveBeenCalled();
 	};
@@ -220,7 +224,7 @@ describe("appseed.ArtifactLifecycleManager", function() {
 		checkProperNotificationForErrorState();
 		
 		expect(events['Loading'].fire).toHaveBeenCalledExactly(2);
-		expect(events['Loading'].fire).toHaveBeenCalledWithALoadingEvent(resourceId);
+		expect(events['Loading'].fire).toHaveBeenCalledWithALoadingEvent(artifact);
 	});
 	
 	it("given the lifecycle is ERROR, loadSuccessful will do nothing", function() {
