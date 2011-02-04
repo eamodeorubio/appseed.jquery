@@ -1,10 +1,4 @@
-appseed.jquery
-=====
-It is a set of plugins for jQuery developed under the LGPL V3 License.
-
-Each folder contains the project for each jQuery plugin
-
-A DSL for dependencies management and lazy loading for JS applications: parcel-js
+parcel-js
 ======
 
 parcel-js is a dependencies management system for JS, CSS and AJAX resources. Although it is an independent JS library, it can also be used as a jQuery plugin.
