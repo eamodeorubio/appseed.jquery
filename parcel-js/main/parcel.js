@@ -691,21 +691,25 @@ appseed.ArtifactsRespository = function(optConfig){
 				artifacts[identifier] = this;
 			};
 			
-			var ArtifactOfTypeWithUriMixin = function(artifactType, uri, loaderConfig) {
-				this['isA'+artifactType] = function(uri){
-					if (typeof(uri) != 'string') 
-						throw new Error("Only an string is allowed as an URI [artifactId='" + identifier + "', type='"+artifactType+"']. It was <" + uri + ">");
-					loaderConfig.uri = uri;
+			var ArtifactOfTypeWithUriMixin = function(artifactType, URI, loaderConfig) {
+				this['isA'+artifactType] = function(newUri){
+					if (typeof(newUri) != 'string') 
+						throw new Error("Only an string is allowed as an URI [artifactId='" + identifier + "', type='"+artifactType+"']. It was <" + newUri + ">");
+					loaderConfig.uri = newUri;
 					return this;
 				};
 				
-				ArtifactOfTypeMixin.call(this['isA'+artifactType](uri)
+				ArtifactOfTypeMixin.call(this['isA'+artifactType](URI)
 																	, artifactType
 																	, loaderConfig);
 				var commonLoad=this.load;
 				this.load=function() {
 					delete this['isA'+artifactType];
 					return commonLoad.call(this);
+				};
+				
+				this.uri=function() {
+					return loaderConfig.uri;
 				};
 			};
 			

@@ -193,6 +193,17 @@ describe("appseed.ArtifactRepository", function() {
 				repository.artifact(artifactId)[artifactMethodName](3333);
 			}));
 			
+			it("given the artifact is a "+artifactType+", uri() will return its URI", function() {
+				var artifact=artifactWithIdAndDefinedType();
+				
+				expect(artifact.uri()).toEqual(artifactURI);
+				
+				artifact
+					[artifactMethodName](anotherArtifactURI);
+				
+				expect(artifact.uri()).toEqual(anotherArtifactURI);
+			});
+			
 			it("given the artifact is a " + artifactType + ", cannot redefine the URI after load() has been called", function(){
 				artifactWithIdAndDefinedType().load();
 				
