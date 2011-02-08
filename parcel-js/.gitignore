@@ -1,9 +1,3 @@
-bin
-build
+.tmp*
 .project
 .classpath
-.settings
-.gradle
-*Notes.txt
-*Experiment.*
-out/

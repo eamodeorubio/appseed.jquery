@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with appseed.jquery/parcel-js. If not, see <http://www.gnu.org/licenses/>.
 */
 // Created by Enrique J. Amodeo Rubio 2-January-2011
-describe("appseed.Event", function() {
+describe("appseed.EventManager", function() {
 	var event, log;
 	beforeEach(function(){
 		log=jasmine.createSpy('<log>');
@@ -74,6 +74,31 @@ describe("appseed.Event", function() {
 		expect(notifiedCallbacks).toEqual([1,2,3]);
 		expect(log).toHaveBeenCalledExactly(1);
 		expect(log.mostRecentCall.args[0]).toContain("expect to fail 2");
+	});
+	
+	it("registerAndNotify, register the callbacks and then notify them notifies them even if one of them raises an error when fired", function() {
+		var expectedEvent="expected event";
+		var notifiedCallbacks=[];
+		var callbacks={};
+		var newCallback=function(id, fails) {
+			var r=jasmine.createSpy().andCallFake(function() {
+				notifiedCallbacks.push(id);
+				if(fails)
+					throw new Error("expect to fail "+id);
+			});
+			callbacks[id]=r;
+			return r;
+		};
+		
+		event.register(newCallback(1), newCallback(2))
+			.registerAndNotify(expectedEvent, newCallback(3), newCallback(4, true), newCallback(5));
+		
+		expect(notifiedCallbacks).toEqual([3, 4, 5]);
+		expect(callbacks[3]).toHaveBeenCalledWith(expectedEvent);
+		expect(callbacks[4]).toHaveBeenCalledWith(expectedEvent);
+		expect(callbacks[5]).toHaveBeenCalledWith(expectedEvent);
+		expect(log).toHaveBeenCalledExactly(1);
+		expect(log.mostRecentCall.args[0]).toContain("expect to fail 4");
 	});
 	
 	it("logs an error message if supplied with a log function when a callback raises an error", function() {

@@ -22,7 +22,16 @@ beforeEach(function() {
 		'toHaveBeenCalledWithALoadingEvent':function(artifact) {
 			var ev=this.actual.mostRecentCall.args[0];
 			this.message=function() { return "Not a loading event for resource '"+artifact.id()+"'. It was <"+jasmine.pp(ev)+">"; }
-			return ev.artifact()==artifact
+			return ev&&ev.artifact()==artifact
+					&&ev.isLoading()
+					&&!ev.isError()
+					&&!ev.isReady();
+		},
+		'toHaveBeenCalledWithALoadingEventAndCallback':function(artifact, callback) {
+			var actualCallback=this.actual.mostRecentCall.args[1];
+			var ev=this.actual.mostRecentCall.args[0];
+			this.message=function() { return "Expected to have been called with a callback <"+jasmine.pp(callback)+"> and a loading event for resource '"+artifact.id()+"'. It was called with <"+jasmine.pp(actualCallback)+"> and <"+jasmine.pp(ev)+">"; }
+			return actualCallback===callback&&ev&&ev.artifact()==artifact
 					&&ev.isLoading()
 					&&!ev.isError()
 					&&!ev.isReady();
@@ -67,10 +76,12 @@ describe("appseed.ArtifactLifecycleManager", function() {
 				'id':id,
 				'log':log,
 				'fire':function(){},
+				'registerAndNotify':function(){},
 				'register':function(){}
 			};
 			spyOn(r, 'fire');
 			spyOn(r, 'register');
+			spyOn(r, 'registerAndNotify');
 			if(id.indexOf('Ready')!=-1)
 				events['Ready']=r;
 			else if(id.indexOf('Error')!=-1)
@@ -116,6 +127,17 @@ describe("appseed.ArtifactLifecycleManager", function() {
 		
 		return lifecycleManager;
 	};
+	
+	it("given the lifecycle is in LOADING state, when a callback is registered for LOADING state, it will be notified", function() {
+		var callback=jasmine.createSpy();
+		
+		lifecycleManager
+			.startLoading();
+		
+		lifecycleManager.whenIsLoading(callback);
+		
+		expect(events['Loading'].registerAndNotify).toHaveBeenCalledWithALoadingEventAndCallback(artifact, callback);
+	});
 	
 	it("given the lifecycle is in NOT_LOADED state, when startLoading is invoked, 'Loading' state event is fired only once", function() {
 		expectLifecycleInLoadingState()

@@ -42,20 +42,23 @@ appseed.EventManager = function(id, optLog){
 	};
 	
 	var log = typeof(optLog) == 'function' ? optLog : appseed.log;
+	var doNotification=function(callback, ev) {
+		try {
+			callback(ev);
+		} catch (e) {
+			log("[EventName:" + id + "]Error in callback:<" +
+			e +
+			":message=" +
+			e.message +
+			">. Callback is:" +
+			callback.toString());
+		}
+	};
+	
 	this.fire = function(ev){
 		var l = callbacks.length;
-		for (var i = 0; i < l; i++) {
-			try {
-				callbacks[i](ev);
-			} catch (e) {
-				log("[EventName:" + id + "]Error in callback:<" +
-				e +
-				":message=" +
-				e.message +
-				">. Callback is:" +
-				callbacks[i].toString());
-			}
-		}
+		for (var i = 0; i < l; i++)
+			doNotification(callbacks[i], ev);
 		
 		return this;
 	};
@@ -69,6 +72,17 @@ appseed.EventManager = function(id, optLog){
 				addCallback(callback);
 		}
 		
+		return this;
+	};
+	
+	this.registerAndNotify=function() {
+		var event=arguments[0];
+		var argCount=arguments.length;
+		for(var i=1;i<argCount;i++) {
+			var callback=arguments[i];
+			this.register(callback);
+			doNotification(callback, event);
+		}
 		return this;
 	};
 };
@@ -335,6 +349,14 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 			eventManagers[eventId].register.apply(eventManagers[eventId], callbacks);
 			return this;
 		};
+		var registerCallbackAndNotifyIt = function(eventId, callbacks){
+			args=[new StateChangeEvent(state)];
+			var callbacksCount=callbacks.length;
+			for(var i=0;i<callbacksCount;i++)
+				args.push(callbacks[i]);
+			eventManagers[eventId].registerAndNotify.apply(eventManagers[eventId], args);
+			return this;
+		};
 		var notify = function(eventId, detail){
 			eventManagers[eventId].fire(new StateChangeEvent(state, detail));
 		};
@@ -345,7 +367,10 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 			return this;
 		};
 		
-		this.whenIsLoading = function(){
+		this.whenIsLoading = function() {
+			if(state==LOADING)
+				return registerCallbackAndNotifyIt.call(this, LOADING, arguments);
+				
 			return registerCallbackFor.call(this, LOADING, arguments);
 		};
 		
