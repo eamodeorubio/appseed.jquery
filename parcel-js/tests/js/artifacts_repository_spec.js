@@ -72,6 +72,7 @@ describe("appseed.ArtifactRepository", function() {
 					'whenIsError':function() {},
 					'whenIsLoaded':function() {},
 					'startLoading':function() {},
+					'loadingProgress':function() {},
 					'errorLoading':function() {},
 					'loadSuccessful':function() {}
 				};
@@ -109,6 +110,7 @@ describe("appseed.ArtifactRepository", function() {
 		if(!lifecycleManagerStub)
 			lifecycleManagerStub={};
 		mockFunction(lifecycleManagerStub, 'startLoading');
+		mockFunction(lifecycleManagerStub, 'loadingProgress');
 		mockFunction(lifecycleManagerStub, 'errorLoading');
 		mockFunction(lifecycleManagerStub, 'loadSuccessful');
 		mockFunction(lifecycleManagerStub, 'configureLog');
@@ -377,6 +379,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			dependencyListener.importedArtifactStatusChanged(importedArtifactId);
 			
+			expect(lifecycleManager.loadingProgress).toHaveBeenCalledAtLeast(1);
 			expect(lifecycleManager.startLoading).toHaveBeenCalledExactly(1); // Not called again
 			
 			expect(dependenciesManager.loadImportedArtifactsBy).toHaveBeenCalledExactly(1); // Not called again
@@ -492,6 +495,7 @@ describe("appseed.ArtifactRepository", function() {
 			dependencyListener.importedArtifactStatusChanged(importedArtifactId);
 			
 			expect(lifecycleManager.startLoading).toHaveBeenCalledExactly(1); // Not called again
+			expect(lifecycleManager.loadingProgress).toHaveBeenCalledAtLeast(1);
 			
 			expect(dependenciesManager.loadImportedArtifactsBy).toHaveBeenCalledExactly(1); // Not called again
 			expect(dependenciesManager.notifyArtifactStatusChanged).not.toHaveBeenCalled();
@@ -515,6 +519,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(lifecycleManager.startLoading).toHaveBeenCalledExactly(1); // Not called again
 			expect(lifecycleManager.errorLoading).toHaveBeenCalledWithArgumentTypes('string'); // Notify error
+			expect(lifecycleManager.loadingProgress).toHaveBeenCalledAtLeast(1);
 			
 			expect(dependenciesManager.loadImportedArtifactsBy).toHaveBeenCalledExactly(1); // Not called again
 			expect(dependenciesManager.notifyArtifactStatusChanged).toHaveBeenCalledWith(artifactId); // Notify error
@@ -569,6 +574,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			dependencyListener.importedArtifactStatusChanged(importedArtifactId);
 			
+			expect(lifecycleManager.loadingProgress).toHaveBeenCalledAtLeast(2);
 			expect(lifecycleManager.startLoading).toHaveBeenCalledExactly(2); // Called again
 			
 			expect(dependenciesManager.loadImportedArtifactsBy).toHaveBeenCalledExactly(2); // Called again

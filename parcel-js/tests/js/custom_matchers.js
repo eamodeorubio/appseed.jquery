@@ -27,6 +27,14 @@ beforeEach(function() {
 			};
 			return this.actual.callCount==times;
 		},
+		'toHaveBeenCalledAtLeast':function(times) {
+			this.message=function() {
+				if(this.actual.callCount>=times)
+					return "Expected to has been called at least '"+times+"' times, but was called '"
+								+this.actual.callCount+"' times!";
+			};
+			return this.actual.callCount>=times;
+		},
 		'toHaveBeenCalledWithArgumentTypes':function(){
 			var args=arguments;
 			this.message=function() {

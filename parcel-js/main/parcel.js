@@ -684,7 +684,7 @@ appseed.ArtifactsRespository = function(optConfig){
 					self.hasErrors = function(){
 						return true;
 					};
-					notifyImportChanged = function(){
+					notifyImportChanged = function() {
 						self.load();
 					};
 					lifecycleManager.errorLoading(optErrorDetail);
@@ -711,7 +711,8 @@ appseed.ArtifactsRespository = function(optConfig){
 						return false;
 					};
 					lifecycleManager.startLoading();
-					notifyImportChanged = function(){
+					notifyImportChanged = function() {
+						lifecycleManager.loadingProgress()
 						if (allImportedArtifactsAreReady()) 
 							configuration['new'+artifactType+'Loader'](loaderConfig).load();
 						else if (anyImportedArtifactHasErrors()) 
