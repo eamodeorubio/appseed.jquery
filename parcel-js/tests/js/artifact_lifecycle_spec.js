@@ -36,10 +36,20 @@ beforeEach(function() {
 					&&!ev.isError()
 					&&!ev.isReady();
 		},
+		'toHaveBeenCalledWithAReadyEventAndCallback':function(artifact, detail, callback) {
+			var actualCallback=this.actual.mostRecentCall.args[1];
+			var ev=this.actual.mostRecentCall.args[0];
+			this.message=function() { return "Expected to have been called with a callback <"+jasmine.pp(callback)+"> and a ready event for resource '"+artifact.id()+"'. It was called with <"+jasmine.pp(actualCallback)+"> and <"+jasmine.pp(ev)+">"; }
+			return actualCallback===callback&&ev&&ev.artifact()==artifact
+					&&!ev.isLoading()
+					&&!ev.isError()
+					&&ev.isReady()
+					&&ev.detail()==detail;
+		},
 		'toHaveBeenCalledWithAReadyEvent':function(artifact, detail) {
 			var ev=this.actual.mostRecentCall.args[0];
 			this.message=function() { return "Not a ready event for resource '"+artifact.id()+"'. It was <"+jasmine.pp(ev)+">"; }
-			return ev.artifact()==artifact
+			return ev&&ev.artifact()==artifact
 					&&!ev.isLoading()
 					&&!ev.isError()
 					&&ev.isReady()
@@ -137,6 +147,21 @@ describe("appseed.ArtifactLifecycleManager", function() {
 		lifecycleManager.whenIsLoading(callback);
 		
 		expect(events['Loading'].registerAndNotify).toHaveBeenCalledWithALoadingEventAndCallback(artifact, callback);
+	});
+	
+	it("given the lifecycle is in READY state, when a callback is registered for READY or LOADED state, it will be notified", function() {
+		var callback1=jasmine.createSpy();
+		var callback2=jasmine.createSpy();
+		
+		lifecycleManager
+			.startLoading()
+			.loadSuccessful(readyDetail);
+		
+		lifecycleManager.whenIsReady(callback1);
+		lifecycleManager.whenIsLoaded(callback2);
+		
+		expect(events['Ready'].registerAndNotify).toHaveBeenCalledWithAReadyEventAndCallback(artifact, readyDetail, callback1);
+		expect(events['Loaded'].registerAndNotify).toHaveBeenCalledWithAReadyEventAndCallback(artifact, readyDetail, callback2);
 	});
 	
 	it("given the lifecycle is in NOT_LOADED state, when startLoading is invoked, 'Loading' state event is fired only once", function() {

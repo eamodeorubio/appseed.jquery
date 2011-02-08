@@ -309,7 +309,7 @@ appseed.AjaxLoader = function(artifactDescription, optAjaxConnectionFactory){
 appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, LOADED){
 	return function(artifact, optEventManagerFactory){
 		var state = NOT_LOADED;
-		
+		var detail;
 		var log = appseed.log;
 		var eventManagerFactory = optEventManagerFactory;
 		if (typeof(eventManagerFactory) != 'function') {
@@ -350,14 +350,14 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 			return this;
 		};
 		var registerCallbackAndNotifyIt = function(eventId, callbacks){
-			args=[new StateChangeEvent(state)];
+			args=[new StateChangeEvent(state, detail)];
 			var callbacksCount=callbacks.length;
 			for(var i=0;i<callbacksCount;i++)
 				args.push(callbacks[i]);
 			eventManagers[eventId].registerAndNotify.apply(eventManagers[eventId], args);
 			return this;
 		};
-		var notify = function(eventId, detail){
+		var notify = function(eventId){
 			eventManagers[eventId].fire(new StateChangeEvent(state, detail));
 		};
 		
@@ -375,6 +375,9 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 		};
 		
 		this.whenIsReady = function(){
+			if(state==READY)
+				return registerCallbackAndNotifyIt.call(this, READY, arguments);
+				
 			return registerCallbackFor.call(this, READY, arguments);
 		};
 		
@@ -383,6 +386,9 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 		};
 		
 		this.whenIsLoaded = function(){
+			if(state==READY)
+				return registerCallbackAndNotifyIt.call(this, LOADED, arguments);
+				
 			return registerCallbackFor.call(this, LOADED, arguments);
 		};
 		
@@ -397,8 +403,9 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 		this.loadSuccessful = function(optDetail){
 			if (state == LOADING) {
 				state = READY;
-				notify(state, optDetail);
-				notify(LOADED, optDetail);
+				detail=optDetail;
+				notify(state);
+				notify(LOADED);
 			}
 			return this;
 		};
@@ -406,8 +413,9 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 		this.errorLoading = function(optErrorDetail){
 			if (state == LOADING) {
 				state = ERROR;
-				notify(state, optErrorDetail);
-				notify(LOADED, optErrorDetail);
+				detail=optErrorDetail;
+				notify(state);
+				notify(LOADED);
 			}
 			return this;
 		};
