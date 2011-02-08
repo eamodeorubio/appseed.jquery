@@ -64,6 +64,8 @@ describe("appseed.DependenciesManager", function() {
 		
 		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId1);
 		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId2);
+		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId1);
+		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId2);
 		
 		manager.loadImportedArtifactsBy(artifactId);
 		
@@ -144,6 +146,10 @@ describe("appseed.DependenciesManager", function() {
 		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId2);
 		manager.artifactRequiresArtifact(anotherArtifactDescription, importedArtifactId1);
 		manager.artifactRequiresArtifact(anotherArtifactDescription, importedArtifactId3);
+		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId1);
+		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId2);
+		manager.artifactRequiresArtifact(anotherArtifactDescription, importedArtifactId1);
+		manager.artifactRequiresArtifact(anotherArtifactDescription, importedArtifactId3);
 		
 		manager.notifyArtifactStatusChanged(importedArtifactId1);
 		
@@ -181,6 +187,9 @@ describe("appseed.DependenciesManager", function() {
 		var importedArtifact2=mockArtifact(importedArtifactId2);
 		var importedArtifact3=mockArtifact(importedArtifactId3);
 		
+		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId1);
+		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId2);
+		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId3);
 		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId1);
 		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId2);
 		manager.artifactRequiresArtifact(artifactDescription, importedArtifactId3);
