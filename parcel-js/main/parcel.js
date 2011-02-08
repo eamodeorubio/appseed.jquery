@@ -382,11 +382,14 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 		};
 		
 		this.whenIsError = function(){
+			if(state==ERROR)
+				return registerCallbackAndNotifyIt.call(this, ERROR, arguments);
+				
 			return registerCallbackFor.call(this, ERROR, arguments);
 		};
 		
 		this.whenIsLoaded = function(){
-			if(state==READY)
+			if(state==READY||state==ERROR)
 				return registerCallbackAndNotifyIt.call(this, LOADED, arguments);
 				
 			return registerCallbackFor.call(this, LOADED, arguments);

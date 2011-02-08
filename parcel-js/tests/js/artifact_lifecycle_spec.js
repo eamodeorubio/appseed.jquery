@@ -46,6 +46,16 @@ beforeEach(function() {
 					&&ev.isReady()
 					&&ev.detail()==detail;
 		},
+		'toHaveBeenCalledWithAnErrorEventAndCallback':function(artifact, errorDetail, callback) {
+			var actualCallback=this.actual.mostRecentCall.args[1];
+			var ev=this.actual.mostRecentCall.args[0];
+			this.message=function() { return "Expected to have been called with a callback <"+jasmine.pp(callback)+"> and an error event for resource '"+artifact.id()+"'. It was called with <"+jasmine.pp(actualCallback)+"> and <"+jasmine.pp(ev)+">"; }
+			return actualCallback===callback&&ev&&ev.artifact()==artifact
+					&&!ev.isLoading()
+					&&ev.isError()
+					&&!ev.isReady()
+					&&ev.detail()==errorDetail;
+		},
 		'toHaveBeenCalledWithAReadyEvent':function(artifact, detail) {
 			var ev=this.actual.mostRecentCall.args[0];
 			this.message=function() { return "Not a ready event for resource '"+artifact.id()+"'. It was <"+jasmine.pp(ev)+">"; }
@@ -58,7 +68,7 @@ beforeEach(function() {
 		'toHaveBeenCalledWithAnErrorEvent':function(artifact, errorDetail) {
 			var ev=this.actual.mostRecentCall.args[0];
 			this.message=function() { return "Not an error event for resource '"+artifact.id()+"'. It was <"+jasmine.pp(ev)+">"; }
-			return ev.artifact()==artifact
+			return ev&&ev.artifact()==artifact
 					&&!ev.isLoading()
 					&&ev.isError()
 					&&!ev.isReady()
@@ -162,6 +172,21 @@ describe("appseed.ArtifactLifecycleManager", function() {
 		
 		expect(events['Ready'].registerAndNotify).toHaveBeenCalledWithAReadyEventAndCallback(artifact, readyDetail, callback1);
 		expect(events['Loaded'].registerAndNotify).toHaveBeenCalledWithAReadyEventAndCallback(artifact, readyDetail, callback2);
+	});
+	
+	it("given the lifecycle is in ERROR state, when a callback is registered for ERROR or LOADED state, it will be notified", function() {
+		var callback1=jasmine.createSpy();
+		var callback2=jasmine.createSpy();
+		
+		lifecycleManager
+			.startLoading()
+			.errorLoading(errorDetail);
+		
+		lifecycleManager.whenIsError(callback1);
+		lifecycleManager.whenIsLoaded(callback2);
+		
+		expect(events['Error'].registerAndNotify).toHaveBeenCalledWithAnErrorEventAndCallback(artifact, errorDetail, callback1);
+		expect(events['Loaded'].registerAndNotify).toHaveBeenCalledWithAnErrorEventAndCallback(artifact, errorDetail, callback2);
 	});
 	
 	it("given the lifecycle is in NOT_LOADED state, when startLoading is invoked, 'Loading' state event is fired only once", function() {
