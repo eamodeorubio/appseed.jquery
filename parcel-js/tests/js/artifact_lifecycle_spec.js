@@ -201,6 +201,17 @@ describe("appseed.ArtifactLifecycleManager", function() {
 		expect(events['Ready'].fire).not.toHaveBeenCalled();
 	});
 	
+	it("given the lifecycle is NOT_LOADED, loadingProgress() will notify callbacks for LOADING state", function(){
+		lifecycleManager
+			.loadingProgress()
+			.loadingProgress();
+		
+		expect(events['Loading'].fire).not.toHaveBeenCalled();
+		expect(events['Error'].fire).not.toHaveBeenCalled();
+		expect(events['Loaded'].fire).not.toHaveBeenCalled();
+		expect(events['Ready'].fire).not.toHaveBeenCalled();
+	});
+	
 	it("given the lifecycle is in NOT_LOADED state, loadSuccessful and errorLoading will do nothing", function(){
 		lifecycleManager
 			.loadSuccessful(readyDetail)
@@ -264,12 +275,35 @@ describe("appseed.ArtifactLifecycleManager", function() {
 		checkProperNotificationForErrorState();
 	});
 	
+	it("given the lifecycle is LOADING, loadingProgress() will notify callbacks for LOADING state", function(){
+		expectLifecycleInLoadingState()
+			.loadingProgress()
+			.loadingProgress();
+		
+		expect(events['Loading'].fire).toHaveBeenCalledExactly(3);
+		expect(events['Loading'].fire).toHaveBeenCalledWithALoadingEvent(artifact);
+		expect(events['Error'].fire).not.toHaveBeenCalled();
+		expect(events['Loaded'].fire).not.toHaveBeenCalled();
+		expect(events['Ready'].fire).not.toHaveBeenCalled();
+	});
+	
 	it("given the lifecycle is READY, startLoading will do nothing", function() {
 		expectLifecycleInReadyState()
 			.startLoading()
 			.startLoading();
 		
 		checkProperNotificationForReadyState();
+	});
+	
+	it("given the lifecycle is READY, loadingProgress() will do nothing", function(){
+		expectLifecycleInReadyState()
+			.loadingProgress()
+			.loadingProgress();
+		
+		expect(events['Loading'].fire).toHaveBeenCalledExactly(1);
+		expect(events['Error'].fire).not.toHaveBeenCalled();
+		expect(events['Loaded'].fire).toHaveBeenCalledExactly(1);
+		expect(events['Ready'].fire).toHaveBeenCalledExactly(1);
 	});
 	
 	it("given the lifecycle is READY, loadSuccessful will do nothing", function() {
@@ -297,6 +331,17 @@ describe("appseed.ArtifactLifecycleManager", function() {
 		
 		expect(events['Loading'].fire).toHaveBeenCalledExactly(2);
 		expect(events['Loading'].fire).toHaveBeenCalledWithALoadingEvent(artifact);
+	});
+	
+	it("given the lifecycle is ERROR, loadingProgress() will do nothing", function(){
+		expectLifecycleInErrorState()
+			.loadingProgress()
+			.loadingProgress();
+		
+		expect(events['Loading'].fire).toHaveBeenCalledExactly(1);
+		expect(events['Ready'].fire).not.toHaveBeenCalled();
+		expect(events['Loaded'].fire).toHaveBeenCalledExactly(1);
+		expect(events['Error'].fire).toHaveBeenCalledExactly(1);
 	});
 	
 	it("given the lifecycle is ERROR, loadSuccessful will do nothing", function() {

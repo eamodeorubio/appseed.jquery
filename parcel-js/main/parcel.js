@@ -422,6 +422,12 @@ appseed.ArtifactLifecycleManager = (function(NOT_LOADED, LOADING, ERROR, READY, 
 			}
 			return this;
 		};
+		
+		this.loadingProgress=function(){
+			if(state==LOADING)
+				notify(state);
+			return this;
+		};
 	};
 })('NotLoaded', 'Loading', 'Error', 'Ready', 'Loaded');
 
