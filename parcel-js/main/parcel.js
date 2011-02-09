@@ -590,10 +590,8 @@ appseed.ArtifactsRespository = function(optConfig){
 	
 	var dependeciesManager = optConfig && typeof(optConfig.newDependenciesManager) == 'function' ? optConfig.newDependenciesManager(repository) : new appseed.DependenciesManager(repository);
 	
-	var newArtifact = function(identifier){
+	var newArtifact = function(identifier) {
 		// Common to all artifacts
-		var id=function(){ return identifier; };
-		
 		var loadImportedArtifacts = function(){
 			dependeciesManager.loadImportedArtifactsBy(identifier);
 		};
@@ -607,34 +605,51 @@ appseed.ArtifactsRespository = function(optConfig){
 		};
 		var notifyImportChanged = function(){
 		};
-		var requires = function(){
-			var dependencyListener;
-			var argCount = arguments.length;
-			if (argCount > 0) {
-				dependencyListener = {
-					'id': identifier,
-					'importedArtifactStatusChanged': function(){
-						notifyImportChanged();
-					}
-				};
-			}
-			for (var i = 0; i < argCount; i++) {
-				var arg = arguments[i];
-				if (typeof(arg) == 'string') 
-					dependeciesManager.artifactRequiresArtifact(dependencyListener, arg);
-			}
-			return this;
-		};
 		
-		var loadingProgress=function() {
-			return dependeciesManager.loadingProgress(identifier);
-		};
-		
-		return new function(){
-			this.requires = requires;
-			this.loadingProgress=loadingProgress;
-			this.id=id;
+		var ArtifactMixin = function() {
+			this.requires = function() {
+				var dependencyListener;
+				var argCount = arguments.length;
+				if (argCount > 0) {
+					dependencyListener = {
+						'id': identifier,
+						'importedArtifactStatusChanged': function(){
+							notifyImportChanged();
+						}
+					};
+				}
+				for (var i = 0; i < argCount; i++) {
+					var arg = arguments[i];
+					if (typeof(arg) == 'string') 
+						dependeciesManager.artifactRequiresArtifact(dependencyListener, arg);
+				}
+				return this;
+			};
 			
+			this.id = function(){
+				return identifier;
+			};
+			
+			this.hasBeenLoaded = function(){
+				return this.isDefined() && (this.isReady() || this.hasErrors());
+			};
+			
+			this.loadingProgress = function(){
+				return dependeciesManager.loadingProgress(identifier);
+			};
+			
+			artifacts[identifier]=this;
+		};
+		
+		var ArtifactOfTypeMixin=function(artifactType, loaderConfig) {
+			ArtifactMixin.call(this);
+			
+			var lifecycleManager = newLifecycleManager(identifier);
+			
+			this.isDefined=function() {
+				return true;
+			};
+		
 			this.isReady = function(){
 				return false;
 			};
@@ -643,109 +658,108 @@ appseed.ArtifactsRespository = function(optConfig){
 				return false;
 			};
 			
-			var ArtifactOfTypeMixin=function(artifactType, loaderConfig) {
-				var lifecycleManager = newLifecycleManager(identifier);
-				this.requires = requires;
-				this.id = id;
-				this.loadingProgress=loadingProgress;
-				
-				this.isReady = function(){
+			this.whenIsLoading = function(){
+				lifecycleManager.whenIsLoading.apply(lifecycleManager, arguments);
+				return this;
+			};
+			
+			this.whenIsReady = function(){
+				lifecycleManager.whenIsReady.apply(lifecycleManager, arguments);
+				return this;
+			};
+			
+			this.whenIsError = function(){
+				lifecycleManager.whenIsError.apply(lifecycleManager, arguments);
+				return this;
+			};
+			
+			this.whenIsLoaded = function(){
+				lifecycleManager.whenIsLoaded.apply(lifecycleManager, arguments);
+				return this;
+			};
+			loaderConfig.error= function(optErrorDetail){
+				var self = repository.artifact(identifier);
+				self.isReady = function(){
 					return false;
 				};
-				
+				self.hasErrors = function(){
+					return true;
+				};
+				notifyImportChanged = function() {
+					self.load();
+				};
+				lifecycleManager.errorLoading(optErrorDetail);
+				dependeciesManager.notifyArtifactStatusChanged(identifier);
+			};
+			loaderConfig.ready=function(optArtifactData){
+				var self = repository.artifact(identifier);
+				self.isReady = function(){
+					return true;
+				};
+				self.hasErrors = function(){
+					return false;
+				};
+				self.load = function(){
+					return this;
+				};
+				lifecycleManager.loadSuccessful(optArtifactData);
+				dependeciesManager.notifyArtifactStatusChanged(identifier);
+			};
+			
+			this.load = function(){
+				delete this['requires'];
 				this.hasErrors = function(){
 					return false;
 				};
-				
-				this.whenIsLoading = function(){
-					lifecycleManager.whenIsLoading.apply(lifecycleManager, arguments);
-					return this;
+				lifecycleManager.startLoading();
+				notifyImportChanged = function() {
+					lifecycleManager.loadingProgress()
+					if (allImportedArtifactsAreReady()) 
+						configuration['new'+artifactType+'Loader'](loaderConfig).load();
+					else if (anyImportedArtifactHasErrors()) 
+						loaderConfig.error('Some imported artifact by "' + identifier + '" of type "'+artifactType+'" has errors');
 				};
-				
-				this.whenIsReady = function(){
-					lifecycleManager.whenIsReady.apply(lifecycleManager, arguments);
-					return this;
-				};
-				
-				this.whenIsError = function(){
-					lifecycleManager.whenIsError.apply(lifecycleManager, arguments);
-					return this;
-				};
-				
-				this.whenIsLoaded = function(){
-					lifecycleManager.whenIsLoaded.apply(lifecycleManager, arguments);
-					return this;
-				};
-				loaderConfig.error= function(optErrorDetail){
-					var self = repository.artifact(identifier);
-					self.isReady = function(){
-						return false;
-					};
-					self.hasErrors = function(){
-						return true;
-					};
-					notifyImportChanged = function() {
-						self.load();
-					};
-					lifecycleManager.errorLoading(optErrorDetail);
-					dependeciesManager.notifyArtifactStatusChanged(identifier);
-				};
-				loaderConfig.ready=function(optArtifactData){
-					var self = repository.artifact(identifier);
-					self.isReady = function(){
-						return true;
-					};
-					self.hasErrors = function(){
-						return false;
-					};
-					self.load = function(){
-						return this;
-					};
-					lifecycleManager.loadSuccessful(optArtifactData);
-					dependeciesManager.notifyArtifactStatusChanged(identifier);
-				};
-				
-				this.load = function(){
-					delete this['requires'];
-					this.hasErrors = function(){
-						return false;
-					};
-					lifecycleManager.startLoading();
-					notifyImportChanged = function() {
-						lifecycleManager.loadingProgress()
-						if (allImportedArtifactsAreReady()) 
-							configuration['new'+artifactType+'Loader'](loaderConfig).load();
-						else if (anyImportedArtifactHasErrors()) 
-							loaderConfig.error('Some imported artifact by "' + identifier + '" of type "'+artifactType+'" has errors');
-					};
-					loadImportedArtifacts();
-					notifyImportChanged();
-					return this;
-				};
-				
-				artifacts[identifier] = this;
+				loadImportedArtifacts();
+				notifyImportChanged();
+				return this;
+			};
+		};
+		
+		var ArtifactOfTypeWithUriMixin = function(artifactType, URI, loaderConfig) {
+			this['isA'+artifactType] = function(newUri){
+				if (typeof(newUri) != 'string') 
+					throw new Error("Only an string is allowed as an URI [artifactId='" + identifier + "', type='"+artifactType+"']. It was <" + newUri + ">");
+				loaderConfig.uri = newUri;
+				return this;
 			};
 			
-			var ArtifactOfTypeWithUriMixin = function(artifactType, URI, loaderConfig) {
-				this['isA'+artifactType] = function(newUri){
-					if (typeof(newUri) != 'string') 
-						throw new Error("Only an string is allowed as an URI [artifactId='" + identifier + "', type='"+artifactType+"']. It was <" + newUri + ">");
-					loaderConfig.uri = newUri;
-					return this;
-				};
-				
-				ArtifactOfTypeMixin.call(this['isA'+artifactType](URI)
-																	, artifactType
-																	, loaderConfig);
-				var commonLoad=this.load;
-				this.load=function() {
-					delete this['isA'+artifactType];
-					return commonLoad.call(this);
-				};
-				
-				this.uri=function() {
-					return loaderConfig.uri;
-				};
+			ArtifactOfTypeMixin.call(this['isA'+artifactType](URI)
+																, artifactType
+																, loaderConfig);
+			var commonLoad=this.load;
+			this.load=function() {
+				delete this['isA'+artifactType];
+				return commonLoad.call(this);
+			};
+			
+			this.uri=function() {
+				return loaderConfig.uri;
+			};
+		};
+		
+		return new function() {
+			ArtifactMixin.call(this);
+			
+			this.isDefined=function() {
+				return false;
+			};
+			
+			this.isReady = function(){
+				return false;
+			};
+			
+			this.hasErrors = function(){
+				return false;
 			};
 			
 			this.isACSS = function(uri){
@@ -817,8 +831,6 @@ appseed.ArtifactsRespository = function(optConfig){
 					};
 				};
 			};
-			
-			artifacts[identifier] = this;
 		};
 	};
 	

@@ -145,6 +145,15 @@ describe("appseed.ArtifactRepository", function() {
 		expect(repository.artifact(anotherArtifactId).id()).toEqual(anotherArtifactId);
 		expect(repository.artifact(yetAnotherArtifactId).id()).toEqual(yetAnotherArtifactId);
 	});
+	
+	it("given the artifact's type has not been specified, isDefined() will return false", function() {
+		expect(repository.artifact(artifactId).isDefined()).toBeFalsy();
+		expect(repository.artifact(artifactId).isDefined()).toBeFalsy();
+	});
+	
+	it("given the artifact's type has not been specified, hasBeenLoaded() will return false", function() {
+		expect(repository.artifact(artifactId).hasBeenLoaded()).toBeFalsy();
+	});
 		
 	it("cannot load an artifact if its type has not been defined yet", function() {
 		expect(repository.artifact(artifactId).load).not.toBeDefined();
@@ -182,6 +191,22 @@ describe("appseed.ArtifactRepository", function() {
 			});
 			return loader;
 		};
+		
+		it("given the artifact is a "+artifactType+", isDefined() will return false", function() {
+			expect(artifactWithIdAndDefinedType().isDefined()).toBeTruthy();
+		});
+		
+		it("given the artifact is a "+artifactType+", but not yet finished loading, hasBeenLoaded() will return false", function() {
+			expect(artifactWithIdAndDefinedType().hasBeenLoaded()).toBeFalsy();
+		});
+		
+		it("given the artifact is a "+artifactType+", id() will return its identifier", function() {
+			var artifact=artifactWithIdAndDefinedType();
+			
+			expect(artifact.id()).toEqual(artifactId);
+			expect(artifact.load().id()).toEqual(artifactId);
+		});
+		
 		if (artifactType != 'Package') {
 			it(artifactMethodName + " raises an error if no uri is passed", expectError(function(){
 				repository.artifact(artifactId)[artifactMethodName]();
@@ -228,13 +253,6 @@ describe("appseed.ArtifactRepository", function() {
 			});
 		}
 		
-		it("given the artifact is a "+artifactType+", id() will return its identifier", function() {
-			var artifact=artifactWithIdAndDefinedType();
-			
-			expect(artifact.id()).toEqual(artifactId);
-			expect(artifact.load().id()).toEqual(artifactId);
-		});
-		
 		it("given the artifact is a "+artifactType+", loadingProgress calls dependenciesManager.loadingProgress(artifactId)", function() {
 			dependenciesManager.loadingProgress.andReturn(1);
 			
@@ -263,6 +281,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(artifact.isReady()).toBeFalsy();
 			expect(artifact.hasErrors()).toBeFalsy();
+			expect(artifact.hasBeenLoaded()).toBeFalsy();
 		});
 		
 		var createRegisterEventCallbackSpec=function(eventName, registerCallbackMethodName) {
@@ -327,8 +346,9 @@ describe("appseed.ArtifactRepository", function() {
 			expect(dependenciesManager.loadImportedArtifactsBy).toHaveBeenCalledExactly(1);
 			expect(dependenciesManager.allImportedArtifactsAreReady).toHaveBeenCalled();
 			
-			expect(repository.artifact(artifactId).isReady()).toEqual(false);
+			expect(repository.artifact(artifactId).isReady()).toBeFalsy();
 			expect(repository.artifact(artifactId).hasErrors()).toEqual(requisitesWillHaveErrors);
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toEqual(requisitesWillHaveErrors);
 			
 			return lifecycleManager;
 		};
@@ -395,6 +415,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(repository.artifact(artifactId).isReady()).toBeFalsy();
 			expect(repository.artifact(artifactId).hasErrors()).toBeFalsy();
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toBeFalsy();
 			return lifecycleManager;
 		};
 		
@@ -415,6 +436,8 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(repository.artifact(artifactId).isReady()).toBeTruthy();
 			expect(repository.artifact(artifactId).hasErrors()).toBeFalsy();
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toBeTruthy();
+			
 			return lifecycleManager;
 		};
 		
@@ -435,6 +458,8 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(repository.artifact(artifactId).isReady()).toBeFalsy();
 			expect(repository.artifact(artifactId).hasErrors()).toBeTruthy();
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toBeTruthy();
+			
 			return lifecycleManager;
 		};
 		
@@ -466,6 +491,8 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(repository.artifact(artifactId).isReady()).toBeFalsy();
 			expect(repository.artifact(artifactId).hasErrors()).toBeFalsy();
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toBeFalsy();
+			
 		});
 		
 		it("given the artifact is a "+artifactType+", and is ready, load will do nothing", function() {
@@ -480,6 +507,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(repository.artifact(artifactId).isReady()).toBeTruthy();
 			expect(repository.artifact(artifactId).hasErrors()).toBeFalsy();
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toBeTruthy();
 		});
 		
 		it("given the artifact is a "+artifactType+", and is loading with pending prerrequisites, importedArtifactStatusChanged will not trigger loader.load on itself if not all requisites are ready", function(){
@@ -504,6 +532,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(artifact.isReady()).toBeFalsy();
 			expect(artifact.hasErrors()).toBeFalsy();
+			expect(artifact.hasBeenLoaded()).toBeFalsy();
 		});
 		
 		var expectALoadedArtifactButWithErrorsInDependencies=function(loader) {
@@ -528,6 +557,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(repository.artifact(artifactId).isReady()).toBeFalsy();
 			expect(repository.artifact(artifactId).hasErrors()).toBeTruthy();
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toBeTruthy();
 			
 			return lifecycleManager;
 		};
@@ -562,6 +592,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(repository.artifact(artifactId).isReady()).toBeFalsy();
 			expect(repository.artifact(artifactId).hasErrors()).toBeFalsy();
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toBeFalsy();
 		});
 		
 		it("given the artifact is a "+artifactType+", and has errors in its prerrequisites, a notification of import status changed will launch a load again", function() {
@@ -590,6 +621,7 @@ describe("appseed.ArtifactRepository", function() {
 			
 			expect(repository.artifact(artifactId).isReady()).toBeFalsy();
 			expect(repository.artifact(artifactId).hasErrors()).toBeFalsy();
+			expect(repository.artifact(artifactId).hasBeenLoaded()).toBeFalsy();
 		});
 		
 		it("given the artifact is a "+artifactType+", it can be loaded later", function() {
