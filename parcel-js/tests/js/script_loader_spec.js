@@ -17,7 +17,7 @@ along with appseed.jquery/parcel-js. If not, see <http://www.gnu.org/licenses/>.
 */
 // Created by Enrique J. Amodeo Rubio 2-January-2011
 describe("appseed.ScriptLoader", function() {
-	var uri='the script uri';
+	var uri='../the script uri';
 	
 	beforeEach(function() {
 		// Cleans link tags.
@@ -37,9 +37,9 @@ describe("appseed.ScriptLoader", function() {
 	
 	it("load() will add a script tag once in the document and then call ready() once", function(){
 		var artifactDescription={
-			'uri':uri,
+			'uri':'../the script uri',
 			'ready':function() {
-				expect(importedScriptWithURI(uri)).toBeInDocumentOnlyOnce();
+				expect(importedScriptWithURI('../the script uri')).toBeInDocumentOnlyOnce();
 			}
 		};
 		spyOn(artifactDescription, 'ready');
@@ -49,7 +49,22 @@ describe("appseed.ScriptLoader", function() {
 		
 		expect(artifactDescription.ready).toHaveBeenCalledExactly(3);
 		
-		expect(importedScriptWithURI(uri)).toBeInDocumentOnlyOnce();
+		expect(importedScriptWithURI('../the script uri')).toBeInDocumentOnlyOnce();
+		
+		artifactDescription={
+			'uri':'./the script uri',
+			'ready':function() {
+				expect(importedScriptWithURI('./the script uri')).toBeInDocumentOnlyOnce();
+			}
+		};
+		spyOn(artifactDescription, 'ready');
+		loader=new appseed.ScriptLoader(artifactDescription);
+		
+		loader.load().load().load();
+		
+		expect(artifactDescription.ready).toHaveBeenCalledExactly(3);
+		
+		expect(importedScriptWithURI('./the script uri')).toBeInDocumentOnlyOnce();
 	});
 	
 	it("given a detector function is provided, load() will add a script tag once in the document, and when the detector returns true, will call ready() once", function(){

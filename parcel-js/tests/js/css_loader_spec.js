@@ -28,9 +28,9 @@ describe("appseed.CSSLoader", function() {
 	
 	it("load() will insert the CSS in the document if not present, and then call ready anyway", function() {
 		var artifactDescription={
-			'uri':'the css uri',
+			'uri':'../the css uri',
 			'ready':function() {
-				expect(importedCSSWithURI('the css uri')).toBeInDocumentOnlyOnce();
+				expect(importedCSSWithURI('../the css uri')).toBeInDocumentOnlyOnce();
 			}
 		};
 		spyOn(artifactDescription, 'ready');
@@ -40,6 +40,21 @@ describe("appseed.CSSLoader", function() {
 		
 		expect(artifactDescription.ready).toHaveBeenCalledExactly(3);
 		
-		expect(importedCSSWithURI('the css uri')).toBeInDocumentOnlyOnce();
+		expect(importedCSSWithURI('../the css uri')).toBeInDocumentOnlyOnce();
+		
+		artifactDescription={
+			'uri':'./the css uri',
+			'ready':function() {
+				expect(importedCSSWithURI('./the css uri')).toBeInDocumentOnlyOnce();
+			}
+		};
+		spyOn(artifactDescription, 'ready');
+		loader=new appseed.CSSLoader(artifactDescription);
+		
+		loader.load().load().load();
+		
+		expect(artifactDescription.ready).toHaveBeenCalledExactly(3);
+		
+		expect(importedCSSWithURI('./the css uri')).toBeInDocumentOnlyOnce();
 	});
 });

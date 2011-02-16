@@ -17,7 +17,7 @@ along with appseed.jquery/parcel-js. If not, see <http://www.gnu.org/licenses/>.
 */
 // Created by Enrique J. Amodeo Rubio 2-January-2011
 describe("appseed.AjaxLoader", function() {
-	var uri='the script uri'
+	var uri='./the script uri'
 			, artifactData='artifact data'
 			, errorData='error message'
 			, errorCode=500;

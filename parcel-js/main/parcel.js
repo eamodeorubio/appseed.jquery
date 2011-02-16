@@ -87,32 +87,35 @@ appseed.EventManager = function(id, optLog){
 	};
 };
 
-appseed.CSSLoader = function(artifactDescription){
-	var hasBeenIncludedInDocument = function(){
-		var linkHref;
+appseed.CSSLoader = function(artifactDescription) {
+	var tag;
+	var getTag=function() {
+		if(!tag)
+		{
+			tag=document.createElement('LINK');
+			tag.rel = 'stylesheet';
+			tag.type = 'text/css';
+			tag.href = artifactDescription.uri;
+			tag.setAttribute('synthetic', 'true');
+		}
+		return tag;
+	}
+	var hasBeenIncludedInDocument = function() {
 		var linkTags = document.getElementsByTagName('LINK');
 		var linkTagsCount = linkTags.length;
-		var encodedUri = encodeURI(artifactDescription.uri);
 		for (var i = 0; i < linkTagsCount; i++) {
 			var linkTag = linkTags[i];
 			if (linkTag.rel == 'stylesheet' &&
-			linkTag.type == 'text/css' &&
-			(linkHref = linkTag.href) &&
-			(linkHref.indexOf(encodedUri) + encodedUri.length) == linkHref.length) 
+					linkTag.type == 'text/css' &&
+					linkTag.href == getTag().href)
 				return true;
 		}
 		return false;
 	};
 	
 	this.load = function(){
-		if (!hasBeenIncludedInDocument()) {
-			var linkTag = document.createElement('LINK');
-			linkTag.rel = 'stylesheet';
-			linkTag.type = 'text/css';
-			linkTag.href = artifactDescription.uri;
-			linkTag.setAttribute('synthetic', 'true');
-			document.getElementsByTagName("head").item(0).appendChild(linkTag);
-		}
+		if (!hasBeenIncludedInDocument())
+			document.getElementsByTagName("head").item(0).appendChild(getTag());
 		if (typeof(artifactDescription.ready) == 'function') 
 			artifactDescription.ready();
 		return this;
@@ -123,15 +126,22 @@ appseed.ScriptLoader = function(artifactDescription){
 	if (typeof(artifactDescription.timeout) != 'number') 
 		artifactDescription.timeout = 5000;
 	
+	var tag;
+	var getTag=function() {
+		if(!tag) {
+			tag = document.createElement('SCRIPT');
+			tag.type = 'text/javascript';
+			tag.src = artifactDescription.uri;
+			tag.setAttribute('synthetic', 'true');
+		}
+		return tag;
+	}
 	var hasBeenIncludedInDocument = function(){
-		var scriptSrc;
 		var scriptTags = document.getElementsByTagName('SCRIPT');
 		var scriptTagsCount = scriptTags.length;
-		var encodedUri = encodeURI(artifactDescription.uri);
 		for (var i = 0; i < scriptTagsCount; i++) {
 			var scriptTag = scriptTags[i];
-			if (scriptTag.type == 'text/javascript' && (scriptSrc = scriptTag.src) &&
-			(scriptSrc.indexOf(encodedUri) + encodedUri.length) == scriptSrc.length) 
+			if (scriptTag.type == 'text/javascript' && getTag().src == scriptTag.src) 
 				return true;
 		}
 		return false;
@@ -162,11 +172,7 @@ appseed.ScriptLoader = function(artifactDescription){
 	
 	this.load = function(){
 		if (!hasBeenIncludedInDocument()) {
-			var scriptTag = document.createElement('SCRIPT');
-			scriptTag.type = 'text/javascript';
-			scriptTag.src = artifactDescription.uri;
-			scriptTag.setAttribute('synthetic', 'true');
-			document.getElementsByTagName("head").item(0).appendChild(scriptTag);
+			document.getElementsByTagName("head").item(0).appendChild(getTag());
 			loadTime = new Date().getTime();
 		}
 		if (typeof(artifactDescription.ready) == 'function') {
@@ -530,7 +536,7 @@ appseed.ArtifactsRespository = function(optConfig){
 	var repository = this;
 	var configuration = {
 		'newLifecycleManager': function(id){
-			return new appseed.ArtifactLifecycleManager(id);
+			return new appseed.ArtifactLifecycleManager(repository.artifact(id));
 		},
 		'newCSSLoader': function(artifactDescription){
 			return new appseed.CSSLoader(artifactDescription);
@@ -850,13 +856,17 @@ appseed.ArtifactsRespository = function(optConfig){
 	};
 };
 
-(function($){
-	if(!$)
-		return;
-	
-	var repository=new appseed.ArtifactsRespository();
-	
-	$.fn.artifact=function(artifactId) {
-		return repository.artifact(artifactId);
-	};
-})(jQuery);
+try {
+	(function($){
+		if (!$) 
+			return;
+		
+		var repository = new appseed.ArtifactsRespository();
+		
+		$.fn.artifact = function(artifactId){
+			return repository.artifact(artifactId);
+		};
+	})(jQuery);
+}catch(err) {
+	// OK !
+}
