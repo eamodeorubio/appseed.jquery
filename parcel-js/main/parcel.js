@@ -694,6 +694,7 @@ appseed.ArtifactsRespository = function(optConfig){
 				notifyImportChanged = function() {
 					self.load();
 				};
+				lifecycleManager.loadingProgress();
 				lifecycleManager.errorLoading(optErrorDetail);
 				dependeciesManager.notifyArtifactStatusChanged(identifier);
 			};
@@ -708,6 +709,7 @@ appseed.ArtifactsRespository = function(optConfig){
 				self.load = function(){
 					return this;
 				};
+				lifecycleManager.loadingProgress();
 				lifecycleManager.loadSuccessful(optArtifactData);
 				dependeciesManager.notifyArtifactStatusChanged(identifier);
 			};
@@ -719,7 +721,7 @@ appseed.ArtifactsRespository = function(optConfig){
 				};
 				lifecycleManager.startLoading();
 				notifyImportChanged = function() {
-					lifecycleManager.loadingProgress()
+					lifecycleManager.loadingProgress();
 					if (allImportedArtifactsAreReady()) 
 						configuration['new'+artifactType+'Loader'](loaderConfig).load();
 					else if (anyImportedArtifactHasErrors()) 
