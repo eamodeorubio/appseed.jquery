@@ -34,3 +34,20 @@ What kind of artifacts can I manage with parcel-js?
 
 But parcel-js adds a "virtual" artifact type called a "Package". A Package is a logic set of artifacts with a name. You can use Packages to simplify even more dependencies management and receive a notification when the whole set of artifacts are loaded.
 For example, you can define an entire application, or subapplication as a Package and instruct parcel-js to load it. If the set of artifacts that composes your Package changes you only need to redefine it and the rest of your system won't notice this change.
+
+Getting started & more information
+====
+
+You can visit the [Wiki for the project](https://github.com/eamodeorubio/appseed.jquery/wiki/Getting-started-with-parcel-js) for more information and documentation
+
+License
+===
+
+Currently this project is licensed as Apache GNU LESSER GENERAL PUBLIC LICENSE Version 3
+
+Authors
+===
+
+Currently the code base is created and maintained by [@eamodeorubio](https://github.com/eamodeorubio)
+
+Feel free to fork the project and do pull request
