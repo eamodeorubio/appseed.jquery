@@ -857,18 +857,3 @@ appseed.ArtifactsRespository = function(optConfig){
 		return this;
 	};
 };
-
-try {
-	(function($){
-		if (!$) 
-			return;
-		
-		var repository = new appseed.ArtifactsRespository();
-		
-		$.fn.artifact = function(artifactId){
-			return repository.artifact(artifactId);
-		};
-	})(jQuery);
-}catch(err) {
-	// OK !
-}
