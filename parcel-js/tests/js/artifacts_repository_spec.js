@@ -94,7 +94,7 @@ describe("appseed.ArtifactRepository", function() {
 			}
 		};
 		
-		repository=new appseed.ArtifactsRespository(repositoryConfig);
+		repository=new appseed.ArtifactsRepository(repositoryConfig);
 	});
 	
 	var mockFunction=function(obj, funName, optFun) {

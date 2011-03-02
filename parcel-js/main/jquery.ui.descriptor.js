@@ -24,7 +24,7 @@ try {
 		if (!$) 
 			return;
 		
-		var repository = new appseed.ArtifactsRespository();
+		var repository = new appseed.ArtifactsRepository();
 		
 		$.fn.artifact = function(artifactId){
 			return repository.artifact(artifactId);

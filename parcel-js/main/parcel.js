@@ -532,7 +532,7 @@ appseed.DependenciesManager = function(repository){
 	};
 };
 
-appseed.ArtifactsRespository = function(optConfig){
+appseed.ArtifactsRepository = function(optConfig){
 	var repository = this;
 	var configuration = {
 		'newLifecycleManager': function(id){
