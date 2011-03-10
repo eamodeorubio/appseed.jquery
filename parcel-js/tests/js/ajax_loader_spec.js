@@ -89,6 +89,8 @@ describe("appseed.AjaxLoader", function() {
 		errorCallback(errorCode, errorData);
 		
 		expect(artifactDescription.error).toHaveBeenCalledExactly(1);
+		expect(artifactDescription.error.mostRecentCall.args[0].errorDetail).toEqual(errorData);
+		expect(artifactDescription.error.mostRecentCall.args[0].statusCode).toEqual(errorCode);
 		expect(artifactDescription.ready).not.toHaveBeenCalled();
 		
 		loader.load().load();

@@ -245,7 +245,7 @@ appseed.AjaxConnectionFactory = function(){
 							&& typeof(readyCallback) == 'function') {
 						readyCallback(xhReq.responseText);
 					} else if (typeof(errorCallback) == 'function') {
-						errorCallback(xhReq.responseText, httpStatus);
+						errorCallback(httpStatus, xhReq.responseText);
 					}
 				} finally {
 					working=false;

@@ -55,8 +55,8 @@ describe("appseed.AjaxConnectionFactory", function() {
 		runs(function() {
 			expect(readyCallback).not.toHaveBeenCalled();
 			expect(errorCallback).toHaveBeenCalledExactly(1);
-			expect(typeof(errorCallback.mostRecentCall.args[0])).toEqual('string');
-			expect(errorCallback.mostRecentCall.args[1]).toEqual(404);
+			expect(errorCallback.mostRecentCall.args[0]).toEqual(404);
+			expect(typeof(errorCallback.mostRecentCall.args[1])).toEqual('string');
 		});
 	});
 	
