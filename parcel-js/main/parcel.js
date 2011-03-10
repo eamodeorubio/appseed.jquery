@@ -534,6 +534,7 @@ appseed.DependenciesManager = function(repository){
 
 appseed.ArtifactsRepository = function(optConfig){
 	var repository = this;
+	var log=appseed.log;
 	var configuration = {
 		'newLifecycleManager': function(id){
 			return new appseed.ArtifactLifecycleManager(repository.artifact(id));
@@ -588,7 +589,7 @@ appseed.ArtifactsRepository = function(optConfig){
 		var r = configuration.newLifecycleManager(id);
 		if (typeof(r.configureLog) == 'function') {
 			r.configureLog(function(msg){
-				repository.log(msg);
+				log(msg);
 			});
 		}
 		return r

@@ -231,6 +231,34 @@ describe("appseed.ArtifactRepository", function() {
 				expect(artifact.uri()).toEqual(anotherArtifactURI);
 			});
 			
+			it("given the artifact is a " + artifactType + ", the log is passed to the lifecycle manager", function(){
+				var msg="log msg";
+				var passedLog;
+				getLifecycleManagerSpy({
+					'configureLog':function(l) {
+						passedLog=l;
+					}
+				});
+				var log1=jasmine.createSpy('log 1');
+				var log2=jasmine.createSpy('log 2');
+				repository.configureLog(log1);
+				artifactWithIdAndDefinedType();
+				
+				expect(passedLog).toBeDefined();
+				
+				passedLog(msg);
+				
+				expect(log1).toHaveBeenCalledWith(msg);
+				
+				repository.configureLog(log2);
+				
+				expect(passedLog).toBeDefined();
+				
+				passedLog(msg);
+				
+				expect(log2).toHaveBeenCalledWith(msg);
+			});
+			
 			it("given the artifact is a " + artifactType + ", cannot redefine the URI after load() has been called", function(){
 				artifactWithIdAndDefinedType().load();
 				
