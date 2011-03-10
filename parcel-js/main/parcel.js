@@ -16,6 +16,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with appseed.jquery/parcel-js. If not, see <http://www.gnu.org/licenses/>.
 */
 // Created by Enrique J. Amodeo Rubio 2-January-2011
+
+// Upgrade of Array class to support indexOf method
+if (!Array.indexOf) {
+	Array.prototype.indexOf = function (obj, start) {
+		for (var i = (start || 0); i < this.length; i++) {
+			if (this[i] == obj) {
+				return i;
+			}
+		}
+		return -1;
+	}
+}
+
 if (!appseed) {
 	var appseed = {};
 };
